@@ -1,4 +1,4 @@
-# Wordle Gemini Solver
+# Wordle Helper
 
 A mathematically optimal Wordle assistant that uses Information Theory (Entropy Maximization) to suggest the best possible guesses.
 
@@ -34,8 +34,8 @@ Wordle Gemini Solver is a fast, lightweight web application designed to help you
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/yourusername/wordle-gemini.git
-    cd wordle-gemini
+    git clone https://github.com/yourusername/WordleHelper.git
+    cd WordleHelper
     ```
 
 2.  **Install dependencies:**
