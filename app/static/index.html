@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle Gemini Solver</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="container">
+        <header>
+            <h1>Wordle Gemini Solver</h1>
+        </header>
+        
+        <main>
+            <div id="board">
+                <!-- Wordle rows will be generated here -->
+            </div>
+            
+            <div id="suggestions-panel">
+                <h2>Top Suggestions</h2>
+                <div id="suggestions-list">
+                    <p>Enter your guesses to see recommendations.</p>
+                </div>
+                <button id="submit-btn" class="primary-btn">Submit Guess</button>
+                <button id="reset-btn">Reset Game</button>
+            </div>
+        </main>
+        
+        <div id="keyboard-hint">
+            <p><strong>How to use:</strong> Type your guess in the grid. Click each tile to change its color: 
+                <span class="hint-gray">Gray (Absent)</span>, 
+                <span class="hint-yellow">Yellow (Present)</span>, 
+                <span class="hint-green">Green (Correct)</span>.
+            </p>
+        </div>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
