@@ -2,7 +2,7 @@
 
 A mathematically optimal Wordle assistant that uses Information Theory (Entropy Maximization) to suggest the best possible guesses.
 
-![Wordle Helper Screenshot](Screenshot%202026-03-09%20at%2019.15.58.png)
+![Wordle Helper Screenshot](screenshot_0.png)
 
 ## Overview
 
