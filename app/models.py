@@ -14,3 +14,7 @@ class Suggestion(BaseModel):
     word: str
     entropy: float
     is_solution: bool
+
+class SuggestionsResponse(BaseModel):
+    solutions: List[Suggestion]
+    info_gain: List[Suggestion]

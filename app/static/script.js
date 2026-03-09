@@ -70,8 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             if (response.ok) {
-                const suggestions = await response.json();
-                renderSuggestions(suggestions);
+                const data = await response.json();
+                renderSuggestions(data);
             } else {
                 const error = await response.json();
                 suggestionsList.innerHTML = `<p style="color: #ff4d4d">${error.detail}</p>`;
@@ -81,29 +81,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderSuggestions(suggestions) {
-        if (!suggestions || suggestions.length === 0) {
+    function renderSuggestions(data) {
+        const solutions = data.solutions || [];
+        const infoGain = data.info_gain || [];
+
+        if (solutions.length === 0 && infoGain.length === 0) {
             suggestionsList.innerHTML = '<p>No possible words match.</p>';
             return;
         }
 
         suggestionsList.innerHTML = '';
-        suggestions.forEach(s => {
-            const item = document.createElement('div');
-            item.className = 'suggestion-item';
-            const label = s.is_solution ? 'Possible Solution' : 'Info Gain Only';
-            const colorClass = s.is_solution ? '' : 'not-solution';
-            
-            item.innerHTML = `
-                <div>
-                    <span class="suggestion-word ${colorClass}">${s.word}</span>
-                    <br><small style="color: #888">${label}</small>
-                </div>
-                <span class="suggestion-entropy">${s.entropy.toFixed(2)}</span>
-            `;
-            item.addEventListener('click', () => fillCurrentRow(s.word));
-            suggestionsList.appendChild(item);
-        });
+
+        if (solutions.length > 0) {
+            const header = document.createElement('div');
+            header.className = 'suggestion-section-header';
+            header.textContent = 'Possible Solutions';
+            suggestionsList.appendChild(header);
+            solutions.forEach(s => {
+                suggestionsList.appendChild(createSuggestionItem(s));
+            });
+        }
+
+        if (infoGain.length > 0) {
+            const header = document.createElement('div');
+            header.className = 'suggestion-section-header';
+            header.textContent = 'Info Gain Only';
+            suggestionsList.appendChild(header);
+            infoGain.forEach(s => {
+                suggestionsList.appendChild(createSuggestionItem(s));
+            });
+        }
+    }
+
+    function createSuggestionItem(s) {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        const colorClass = s.is_solution ? '' : 'not-solution';
+
+        item.innerHTML = `
+            <div>
+                <span class="suggestion-word ${colorClass}">${s.word}</span>
+            </div>
+            <span class="suggestion-entropy">${s.entropy.toFixed(2)}</span>
+        `;
+        item.addEventListener('click', () => fillCurrentRow(s.word));
+        return item;
     }
 
     function fillCurrentRow(word) {

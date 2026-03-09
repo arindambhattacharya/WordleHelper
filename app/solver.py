@@ -1,5 +1,6 @@
 import math
-from typing import List, Tuple, Dict, Set
+import random
+from typing import List, Tuple, Dict
 from collections import Counter
 from app.models import GuessEntry, FeedbackType
 
@@ -10,6 +11,9 @@ def load_word_list(file_path: str) -> List[str]:
 SOLUTIONS = load_word_list("data/solutions.txt")
 ALLOWED_GUESSES = load_word_list("data/allowed_guesses.txt")
 ALL_WORDS = set(SOLUTIONS + ALLOWED_GUESSES)
+
+# Top entropy-equivalent opening words (all score ~5.8 bits)
+TOP_OPENERS = ["salet", "reast", "crate", "trace", "slate"]
 
 def get_feedback(guess: str, secret: str) -> Tuple[FeedbackType, ...]:
     """Generates the feedback pattern for a guess against a secret word."""
@@ -65,32 +69,37 @@ def get_letter_frequency_score(word: str, remaining_solutions: List[str]) -> flo
     score = sum(letter_counts.get(char, 0) for char in unique_chars)
     return float(score)
 
-def get_suggestions(guesses: List[GuessEntry], top_n: int = 5) -> List[dict]:
-    """Provides the top N suggestions based on the board state."""
+def get_suggestions(guesses: List[GuessEntry], top_n: int = 5) -> dict:
+    """Provides separate solution and info-gain suggestions based on the board state."""
     remaining_solutions = filter_solutions(SOLUTIONS, guesses)
+    remaining_set = set(remaining_solutions)
     
     if not remaining_solutions:
-        return []
+        return {"solutions": [], "info_gain": []}
         
-    # First move optimization
+    # First move optimization: pick a random top opener
     if not guesses:
-        return [{"word": "salet", "entropy": 5.836, "is_solution": True}]
+        opener = random.choice(TOP_OPENERS)
+        return {
+            "solutions": [{"word": opener, "entropy": 5.836, "is_solution": True}],
+            "info_gain": []
+        }
 
     # Filter candidates to only include words consistent with all previous feedback
-    # This ensures suggestions "respect the yellow/green/gray colors".
     consistent_candidates = filter_solutions(list(ALL_WORDS), guesses)
     
-    # If no consistent candidates found (shouldn't happen with valid feedback), 
-    # fall back to all words to avoid returning nothing.
     if not consistent_candidates:
         consistent_candidates = list(ALL_WORDS)
 
     # If only a few solutions remain, suggest them directly.
     if len(remaining_solutions) <= top_n:
-        return [
-            {"word": s, "entropy": calculate_entropy(s, remaining_solutions), "is_solution": True}
-            for s in sorted(remaining_solutions)
-        ]
+        return {
+            "solutions": [
+                {"word": s, "entropy": calculate_entropy(s, remaining_solutions), "is_solution": True}
+                for s in sorted(remaining_solutions)
+            ],
+            "info_gain": []
+        }
 
     scored_candidates = []
     THRESHOLD = 500 
@@ -113,26 +122,42 @@ def get_suggestions(guesses: List[GuessEntry], top_n: int = 5) -> List[dict]:
                     seen_chars.add(char)
                 score += positional_freq[i][char]
             
-            if word in remaining_solutions:
+            if word in remaining_set:
                 score *= 1.1 
             
-            scored_candidates.append((word, score))
-        scored_candidates.sort(key=lambda x: x[1], reverse=True)
+            # Add random jitter for tie-breaking
+            scored_candidates.append((word, score, random.random()))
+        scored_candidates.sort(key=lambda x: (x[1], x[2]), reverse=True)
     else:
         # Full entropy calculation
         for word in consistent_candidates:
             entropy = calculate_entropy(word, remaining_solutions)
-            is_sol = 1 if word in remaining_solutions else 0
-            scored_candidates.append((word, (entropy, is_sol)))
-        scored_candidates.sort(key=lambda x: (x[1][0], x[1][1]), reverse=True)
+            is_sol = 1 if word in remaining_set else 0
+            # Add random jitter for tie-breaking
+            scored_candidates.append((word, entropy, is_sol, random.random()))
+        scored_candidates.sort(key=lambda x: (x[1], x[2], x[3]), reverse=True)
 
-    top_results = scored_candidates[:top_n]
-    
-    return [
-        {
-            "word": word, 
-            "entropy": round(score[0] if isinstance(score, tuple) else score / 1000.0, 3), 
-            "is_solution": word in remaining_solutions
-        }
-        for word, score in top_results
-    ]
+    # Split into solutions and info-gain-only
+    solution_results = []
+    info_gain_results = []
+
+    for entry in scored_candidates:
+        word = entry[0]
+        if len(remaining_solutions) > THRESHOLD:
+            entropy_val = round(entry[1] / 1000.0, 3)
+        else:
+            entropy_val = round(entry[1], 3)
+
+        item = {"word": word, "entropy": entropy_val, "is_solution": word in remaining_set}
+
+        if word in remaining_set:
+            if len(solution_results) < top_n:
+                solution_results.append(item)
+        else:
+            if len(info_gain_results) < top_n:
+                info_gain_results.append(item)
+
+        if len(solution_results) >= top_n and len(info_gain_results) >= top_n:
+            break
+
+    return {"solutions": solution_results, "info_gain": info_gain_results}
