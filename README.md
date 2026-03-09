@@ -2,11 +2,11 @@
 
 A mathematically optimal Wordle assistant that uses Information Theory (Entropy Maximization) to suggest the best possible guesses.
 
-![Wordle Gemini Screenshot](Screenshot%202026-03-08%20at%2020.10.14.png)
+![Wordle Helper Screenshot](Screenshot%202026-03-09%20at%2019.15.58.png)
 
 ## Overview
 
-Wordle Gemini Solver is a fast, lightweight web application designed to help you solve Wordle puzzles in the fewest steps possible. It combines a high-performance Python backend (FastAPI) with a sleek, responsive vanilla JavaScript frontend.
+Wordle Helper is a fast, lightweight web application designed to help you solve Wordle puzzles in the fewest steps possible. It combines a high-performance Python backend (FastAPI) with a sleek, responsive vanilla JavaScript frontend.
 
 ## Features
 
